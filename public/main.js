@@ -5,6 +5,13 @@ const ws = new WebSocket("wss://multiplayer-snake-game-ofbs.onrender.com");
 let players = {};
 let items = {};
 
+ws.onopen = () => {
+  console.log("WebSocket connected");
+};
+ws.onerror = (err) => {
+  console.error("WebSocket error", err);
+};
+
 ws.onmessage = (msg) => {
   const data = JSON.parse(msg.data);
   players = data.players;

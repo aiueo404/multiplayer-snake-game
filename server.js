@@ -1,7 +1,7 @@
-const { randomInt, getRandomValues } = require("crypto");
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const crypto = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
@@ -15,7 +15,7 @@ let players = {};
 let items = {};
 
 wss.on("connection", (ws) => {
-  const id = Date.now();
+  const id = crypto.randomUUID();
   players[id] = { x: 10, y: 10, dx: 1, dy: 0 };
 
   ws.on("message", (msg) => {
@@ -32,7 +32,7 @@ wss.on("connection", (ws) => {
 });
 
 function spawnItem() {
-  const id = Date.now();
+  const id = crypto.randomUUID();
   const x = getRandomInt(0, MAP_WIDTH - 1);
   const y = getRandomInt(0, MAP_HEIGHT - 1);
   items[id] = { x: x, y: y };
