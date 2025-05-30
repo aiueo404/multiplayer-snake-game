@@ -3,9 +3,12 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ws = new WebSocket("wss://multiplayer-snake-game-ofbs.onrender.com");
 let players = {};
+let items = {};
 
 ws.onmessage = (msg) => {
-  players = JSON.parse(msg.data);
+  const data = JSON.parse(msg.data);
+  players = data.players;
+  items = data.items;
 };
 
 document.addEventListener("keydown", (e) => {
@@ -20,9 +23,15 @@ document.addEventListener("keydown", (e) => {
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "green";
   for (let id in players) {
     let p = players[id];
     ctx.fillRect(p.x * CELL_SIZE, p.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+  ctx.fillStyle = "red";
+  for (let id in items) {
+    let i = items[id];
+    ctx.fillRect(i.x * CELL_SIZE, i.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
   requestAnimationFrame(gameLoop);
 }

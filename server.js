@@ -1,3 +1,4 @@
+const { randomInt, getRandomValues } = require("crypto");
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -11,6 +12,7 @@ const MAP_WIDTH = 40;
 const MAP_HEIGHT = 40;
 
 let players = {};
+let items = {};
 
 wss.on("connection", (ws) => {
   const id = Date.now();
@@ -29,6 +31,17 @@ wss.on("connection", (ws) => {
   });
 });
 
+function spawnItem() {
+  const id = Date.now();
+  const x = getRandomInt(0, MAP_WIDTH - 1);
+  const y = getRandomInt(0, MAP_HEIGHT - 1);
+  items[id] = { x: x, y: y };
+}
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 setInterval(() => {
   for (let id in players) {
     players[id].x += players[id].dx;
@@ -39,13 +52,15 @@ setInterval(() => {
     if (players[id].y < 0) players[id].y = MAP_HEIGHT - 1;
     if (players[id].y >= MAP_HEIGHT) players[id].y = 0;
   }
-  const state = JSON.stringify(players);
+  const state = JSON.stringify({ players, items });
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(state);
     }
   });
 }, 100);
+
+spawnItem();
 
 app.use(express.static("public"));
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
