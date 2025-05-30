@@ -14,9 +14,36 @@ ws.onerror = (err) => {
 
 ws.onmessage = (msg) => {
   const data = JSON.parse(msg.data);
-  players = data.players;
-  items = data.items;
+  if (data.type === "chat") {
+    addChatMessage(data.id, data.message);
+  } else if (data.players && data.items) {
+    players = data.players;
+    items = data.items;
+  }
 };
+
+const chatInput = document.getElementById("chat-input");
+const chatSend = document.getElementById("chat-send");
+chatSend.addEventListener("click", sendChat);
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendChat();
+});
+
+function sendChat() {
+  const msg = chatInput.value.trim();
+  if (msg) {
+    ws.send(JSON.stringify({ type: "chat", message: msg }));
+    chatInput.value = "";
+  }
+}
+
+function addChatMessage(id, message) {
+  const chatMessages = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.textContent = `[${id.slice(0, 6)}] ${message}`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 document.addEventListener("keydown", (e) => {
   let dx = 0,

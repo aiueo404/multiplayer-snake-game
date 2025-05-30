@@ -23,6 +23,17 @@ wss.on("connection", (ws) => {
     if (data.type === "move") {
       players[id].dx = data.dx;
       players[id].dy = data.dy;
+    } else if (data.type === "chat") {
+      const chatMsg = JSON.stringify({
+        type: "chat",
+        id,
+        message: data.message,
+      });
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(chatMsg);
+        }
+      });
     }
   });
 
