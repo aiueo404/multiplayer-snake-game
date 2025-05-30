@@ -43,14 +43,21 @@ function getRandomInt(min, max) {
 }
 
 setInterval(() => {
-  for (let id in players) {
-    players[id].x += players[id].dx;
-    players[id].y += players[id].dy;
+  for (let pid in players) {
+    players[pid].x += players[pid].dx;
+    players[pid].y += players[pid].dy;
     // マップの端でループさせる
-    if (players[id].x < 0) players[id].x = MAP_WIDTH - 1;
-    if (players[id].x >= MAP_WIDTH) players[id].x = 0;
-    if (players[id].y < 0) players[id].y = MAP_HEIGHT - 1;
-    if (players[id].y >= MAP_HEIGHT) players[id].y = 0;
+    if (players[pid].x < 0) players[pid].x = MAP_WIDTH - 1;
+    if (players[pid].x >= MAP_WIDTH) players[pid].x = 0;
+    if (players[pid].y < 0) players[pid].y = MAP_HEIGHT - 1;
+    if (players[pid].y >= MAP_HEIGHT) players[pid].y = 0;
+    // プレイヤーがアイテムを取得する
+    for (let iid in items) {
+      if (players[pid].x == items[iid].x && players[pid].y == items[iid].y) {
+        delete items[iid];
+        spawnItem();
+      }
+    }
   }
   const state = JSON.stringify({ players, items });
   wss.clients.forEach((client) => {
