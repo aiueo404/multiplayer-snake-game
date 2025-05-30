@@ -13,10 +13,14 @@ const MAP_HEIGHT = 40;
 
 let players = {};
 let items = {};
+let chatHistory = []; // チャット履歴を保存する配列
 
 wss.on("connection", (ws) => {
   const id = crypto.randomUUID();
   players[id] = { x: 10, y: 10, dx: 1, dy: 0 };
+
+  // 新しく接続したクライアントに履歴を送信
+  chatHistory.forEach((msg) => ws.send(JSON.stringify(msg)));
 
   ws.on("message", (msg) => {
     const data = JSON.parse(msg);
@@ -24,16 +28,20 @@ wss.on("connection", (ws) => {
       players[id].dx = data.dx;
       players[id].dy = data.dy;
     } else if (data.type === "chat") {
-      const chatMsg = JSON.stringify({
+      const chatMsg = {
         type: "chat",
-        id,
+        id: data.id || "anonymous",
         message: data.message,
-      });
+      };
+      chatHistory.push(chatMsg); // 履歴に追加
+      // 全クライアントに送信
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(chatMsg);
+          client.send(JSON.stringify(chatMsg));
         }
       });
+      // 履歴が多くなりすぎないように最大件数を制限
+      if (chatHistory.length > 100) chatHistory.shift();
     }
   });
 
