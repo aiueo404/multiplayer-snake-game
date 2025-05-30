@@ -15,9 +15,10 @@ document.addEventListener("keydown", (e) => {
   let dx = 0,
     dy = 0;
   if (e.key === "ArrowUp") dy = -1;
-  if (e.key === "ArrowDown") dy = 1;
-  if (e.key === "ArrowLeft") dx = -1;
-  if (e.key === "ArrowRight") dx = 1;
+  else if (e.key === "ArrowDown") dy = 1;
+  else if (e.key === "ArrowLeft") dx = -1;
+  else if (e.key === "ArrowRight") dx = 1;
+  else return; // 矢印キー以外は無視
   ws.send(JSON.stringify({ type: "move", dx, dy }));
 });
 
