@@ -17,10 +17,28 @@ let chatHistory = []; // チャット履歴を保存する配列
 
 wss.on("connection", (ws) => {
   const id = crypto.randomUUID();
-  players[id] = { x: 10, y: 10, dx: 1, dy: 0 };
+  const startX = getRandomInt(1, MAP_WIDTH - 2);
+  const startY = getRandomInt(1, MAP_HEIGHT - 2);
+  players[id] = {
+    x: startX,
+    y: startY,
+    dx: 1,
+    dy: 0,
+    body: [{ x: startX, y: startY }],
+  };
 
   // 新しく接続したクライアントに履歴を送信
   chatHistory.forEach((msg) => ws.send(JSON.stringify(msg)));
+
+  // 新規接続時に現在のゲーム状態を送信
+  ws.send(JSON.stringify({ players, items }));
+
+  // 他の全クライアントに新しいプレイヤーが追加されたことを通知
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ players, items }));
+    }
+  });
 
   ws.on("message", (msg) => {
     const data = JSON.parse(msg);
@@ -63,20 +81,32 @@ function getRandomInt(min, max) {
 
 setInterval(() => {
   for (let pid in players) {
-    players[pid].x += players[pid].dx;
-    players[pid].y += players[pid].dy;
+    const p = players[pid];
+    const newX = (p.x + p.dx + MAP_WIDTH) % MAP_WIDTH;
+    const newY = (p.y + p.dy + MAP_HEIGHT) % MAP_HEIGHT;
+
+    p.body.unshift({ x: newX, y: newY });
+
+    let gotItem = false;
     // マップの端でループさせる
-    if (players[pid].x < 0) players[pid].x = MAP_WIDTH - 1;
-    if (players[pid].x >= MAP_WIDTH) players[pid].x = 0;
-    if (players[pid].y < 0) players[pid].y = MAP_HEIGHT - 1;
-    if (players[pid].y >= MAP_HEIGHT) players[pid].y = 0;
+    if (p.x < 0) p.x = MAP_WIDTH - 1;
+    if (p.x >= MAP_WIDTH) p.x = 0;
+    if (p.y < 0) p.y = MAP_HEIGHT - 1;
+    if (p.y >= MAP_HEIGHT) p.y = 0;
     // プレイヤーがアイテムを取得する
     for (let iid in items) {
-      if (players[pid].x == items[iid].x && players[pid].y == items[iid].y) {
+      if (newX == items[iid].x && newY == items[iid].y) {
         delete items[iid];
         spawnItem();
+        gotItem = true;
       }
     }
+    if (!gotItem) {
+      p.body.pop();
+    }
+
+    p.x = newX;
+    p.y = newY;
   }
   const state = JSON.stringify({ players, items });
   wss.clients.forEach((client) => {

@@ -1,7 +1,7 @@
 const CELL_SIZE = 10;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const ws = new WebSocket("wss://multiplayer-snake-game-ofbs.onrender.com");
+const ws = new WebSocket("ws://localhost:3000");
 let players = {};
 let items = {};
 
@@ -58,10 +58,14 @@ document.addEventListener("keydown", (e) => {
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "green";
   for (let id in players) {
     let p = players[id];
-    ctx.fillRect(p.x * CELL_SIZE, p.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    ctx.fillStyle = "green";
+    if (Array.isArray(p.body)) {
+      for (let b of p.body) {
+        ctx.fillRect(b.x * CELL_SIZE, b.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
+    }
   }
   ctx.fillStyle = "red";
   for (let id in items) {
